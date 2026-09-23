@@ -1,0 +1,87 @@
+### ekf.yaml
+# robot_localization EKF config for the 4WD skid-steer robot.
+#
+# Strategy:
+#   - DO NOT trust wheel odometry's yaw / angular velocity, since skid-steer
+#     turning requires lateral wheel slip, which makes wheel-derived yaw
+#     systematically unreliable (this is the root cause of the map
+#     distortion / fast-spin behavior seen in RViz).
+#   - Trust the IMU's angular velocity (yaw rate) instead, since it's a
+#     direct physical measurement that doesn't depend on wheel-ground
+#     contact assumptions.
+#
+# This node becomes the SOLE publisher of the odom -> base_link transform.
+# Once this is running, wheel_odometry.py's TransformBroadcaster must be
+# disabled (see notes below) to avoid the same dual-broadcaster TF conflict
+# you already fixed for controller.py.
+
+ekf_filter_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 30.0
+    sensor_timeout: 0.2
+    two_d_mode: true            # robot only moves in the ground plane
+    transform_time_offset: 0.0
+    transform_timeout: 0.0
+    print_diagnostics: true
+    debug: false
+
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: base_link
+    world_frame: odom           # local filter only; no map/GPS fusion here
+
+    publish_tf: true            # this node owns odom -> base_link
+    publish_acceleration: false
+
+    # -----------------------------------------------------------------
+    # Fuse position (x, y) and linear velocity (vx, vy).
+    # Explicitly DO NOT fuse yaw or yaw rate from this source.
+    # -----------------------------------------------------------------
+    odom0: /odom
+    odom0_config: [true,  true,  false,   # x,     y,     z
+                   false, false, true,   # roll,  pitch, yaw
+                   true,  true,  false,   # vx,    vy,    vz
+                   false, false, true,   # vroll, vpitch, vyaw
+                   false, false, false]   # ax,    ay,     az
+    odom0_queue_size: 10
+    odom0_nodelay: true
+    odom0_differential: false
+    odom0_relative: false
+
+    # -----------------------------------------------------------------
+    # IMU input (from imu_plugin -> /imu/data)
+    # Fuse ONLY yaw rate (angular velocity about Z). Orientation fusion
+    # is left off to avoid drift/bias issues from an unfiltered/cheap
+    # simulated IMU; angular velocity alone is enough to correct the
+    # wheel-slip yaw error.
+    # -----------------------------------------------------------------
+    imu0: /imu/data
+    imu0_config: [false, false, false,   # x,     y,     z
+                  false, false, false,   # roll,  pitch, yaw
+                  false, false, false,   # vx,    vy,    vz
+                  false, false, true,    # vroll, vpitch, vyaw
+                  false, false, false]   # ax,    ay,     az
+    imu0_queue_size: 10
+    imu0_nodelay: true
+    imu0_differential: false
+    imu0_relative: false
+    imu0_remove_gravitational_acceleration: true
+
+    # Process noise covariance (defaults are reasonable to start;
+    # longer directly informs orientation).
+    process_noise_covariance: [0.05, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.05, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.06, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.03, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.03, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.06, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.025,0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.025,0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.04, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.02, 0.0,  0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,  0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.01, 0.0,
+                                0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.015]

@@ -1,0 +1,546 @@
+
+<robot
+  name="new_robot">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-3.6212E-18 -7.0088E-18 0.080606"
+        rpy="0 0 0" />
+      <mass
+        value="20" />
+      <inertia
+        ixx="0.5403"
+        ixy="-8.1866E-07"
+        ixz="1.3633E-16"
+        iyy="1.158"
+        iyz="-2.6358E-17"
+        izz="1.4784" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 0.35" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.08" rpy="0 0 0" />
+      <geometry>
+        <box size="0.20 0.28 0.08" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="frw_link">
+    <inertial>
+      <origin
+        xyz="0 -0.019741 5.7641E-19"
+        rpy="0 0 0" />
+      <mass
+        value="0.37917" />
+      <inertia
+        ixx="0.00028454"
+        ixy="3.3158E-20"
+        ixz="-2.4767E-20"
+        iyy="0.00047097"
+        iyz="-5.2804E-21"
+        izz="0.00028454" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/frw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.02 0" rpy="1.5708 0 0" />
+      <geometry>
+        <cylinder radius="0.05" length="0.04" />
+      </geometry>
+   </collision>
+  </link>
+  <joint
+     name="frw_joint"
+     type="continuous">
+   <origin
+       xyz="0.16 -0.16 0"
+       rpy="0 0 0" />
+   <parent
+       link="base_link" />
+   <child
+       link="frw_link" />
+   <axis
+       xyz="0 1 0" />
+
+  <limit
+      effort="100"
+      velocity="20"/>
+  </joint>
+  <link
+    name="flw_link">
+    <inertial>
+      <origin
+        xyz="0 0.019741 -1.6181E-19"
+        rpy="0 0 0" />
+      <mass
+        value="0.37917" />
+      <inertia
+        ixx="0.00028454"
+        ixy="2.078E-20"
+        ixz="1.5946E-20"
+        iyy="0.00047097"
+        iyz="-4.4491E-21"
+        izz="0.00028454" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/flw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0.02 0" rpy="1.5708 0 0" />
+      <geometry>
+        <cylinder radius="0.05" length="0.04" />
+      </geometry>
+   </collision>
+  </link>
+  <joint
+    name="flw_joint"
+    type="continuous">
+    <origin
+      xyz="0.16 0.16 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="flw_link" />
+    <axis
+      xyz="0 1 0" />
+      
+    <limit
+       effort="100"
+       velocity="20"/>
+  </joint>
+  <link
+    name="rrw_link">
+    <inertial>
+      <origin
+        xyz="0 -0.019741 1.1532E-19"
+        rpy="0 0 0" />
+      <mass
+        value="0.37917" />
+      <inertia
+        ixx="0.00028454"
+        ixy="3.4599E-20"
+        ixz="3.8161E-23"
+        iyy="0.00047097"
+        iyz="1.0201E-21"
+        izz="0.00028454" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/rrw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <!-- rrw_link -->
+    <collision>
+      <origin xyz="0 -0.02 0" rpy="1.5708 0 0" />
+      <geometry>
+        <cylinder radius="0.05" length="0.04" />
+      </geometry>
+   </collision>
+  </link>
+  <joint
+    name="rrw_joint"
+    type="continuous">
+    <origin
+      xyz="-0.16 -0.16 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rrw_link" />
+    <axis
+      xyz="0 1 0" />
+      
+    <limit
+       effort="100"
+       velocity="20"/>
+  </joint>
+  <link
+    name="rlw_link">
+    <inertial>
+      <origin
+        xyz="0 0.019741 1.5438E-18"
+        rpy="0 0 0" />
+      <mass
+        value="0.37917" />
+      <inertia
+        ixx="0.00028454"
+        ixy="4.9641E-20"
+        ixz="4.5818E-20"
+        iyy="0.00047097"
+        iyz="9.2056E-21"
+        izz="0.00028454" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/rlw_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+   <!-- rlw_link -->
+   <collision>
+     <origin xyz="0 0.02 0" rpy="1.5708 0 0" />
+     <geometry>
+       <cylinder radius="0.05" length="0.04" />
+     </geometry>
+   </collision>
+  </link>
+  <joint
+    name="rlw_joint"
+    type="continuous">
+    <origin
+      xyz="-0.16 0.16 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rlw_link" />
+    <axis
+      xyz="0 1 0" />
+      
+    <limit
+       effort="100"
+       velocity="20"/>
+  </joint>
+  <link
+    name="lidar_link">
+    <inertial>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0.5" />
+      <mass
+        value="0" />
+      <inertia
+        ixx="0"
+        ixy="0"
+        ixz="0"
+        iyy="0"
+        iyz="0"
+        izz="0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/lidar_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="file:///home/jay/robot_ws/install/new_robot/share/new_robot/meshes/lidar_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <!-- ========================= -->
+<!-- LiDAR Joint -->
+<!-- ========================= -->
+
+<joint
+    name="lidar_joint"
+    type="fixed">
+
+    <origin
+        xyz="0 0 0.17098"
+        rpy="0 0 0"/>
+
+    <parent link="base_link"/>
+    <child link="lidar_link"/>
+
+</joint>
+
+
+<!-- ========================= -->
+<!-- IMU Link -->
+<!-- ========================= -->
+
+<link name="imu_link">
+
+    <inertial>
+
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+
+        <mass value="0.05"/>
+
+        <inertia
+            ixx="0.0001"
+            iyy="0.0001"
+            izz="0.0001"
+            ixy="0"
+            ixz="0"
+            iyz="0"/>
+
+    </inertial>
+
+</link>
+
+
+<!-- ========================= -->
+<!-- IMU Joint -->
+<!-- ========================= -->
+
+<joint
+    name="imu_joint"
+    type="fixed">
+
+    <origin
+        xyz="0 0 0.10"
+        rpy="0 0 0"/>
+
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+
+</joint>
+<!-- ======================== -->
+<!--  GAZEBO: WHEEL FRICTION  -->
+<!--  Low mu2 for skid-steer  -->
+<!-- ======================== -->
+<gazebo reference="frw_link">
+  <mu1>1.0</mu1>
+  <mu2>0.3</mu2>
+  <kp>500000</kp>
+  <kd>50</kd>
+</gazebo>
+
+<gazebo reference="flw_link">
+  <mu1>1.0</mu1>
+  <mu2>0.3</mu2>
+  <kp>500000</kp>
+  <kd>50</kd>
+</gazebo>
+
+<gazebo reference="rrw_link">
+  <mu1>1.0</mu1>
+  <mu2>0.3</mu2>
+  <kp>500000</kp>
+  <kd>50</kd>
+</gazebo>
+
+<gazebo reference="rlw_link">
+  <mu1>1.0</mu1>
+  <mu2>0.3</mu2>
+  <kp>500000</kp>
+  <kd>50</kd>
+</gazebo>
+
+<gazebo reference="imu_link">
+
+  <sensor name="imu_sensor" type="imu">
+
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>true</visualize>
+
+    <imu>
+      <angular_velocity>
+        <x>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </x>
+        <y>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </y>
+        <z>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </z>
+      </angular_velocity>
+      <linear_acceleration>
+        <x>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </x>
+        <y>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </y>
+        <z>
+          <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>0.0</stddev>
+          </noise>
+        </z>
+      </linear_acceleration>
+    </imu>
+
+    <plugin
+        name="imu_plugin"
+        filename="libgazebo_ros_imu_sensor.so">
+
+      <ros>
+        <remapping>~/out:=imu/data</remapping>
+      </ros>
+
+      <frame_name>imu_link</frame_name>
+
+    </plugin>
+
+  </sensor>
+
+</gazebo>
+
+
+<gazebo reference="lidar_link">
+  <sensor name="lidar" type="ray">
+
+    <always_on>true</always_on>
+    <visualize>true</visualize>
+    <update_rate>10</update_rate>
+
+    <ray>
+
+      <scan>
+
+        <horizontal>
+          <samples>720</samples>
+          <resolution>1</resolution>
+          <min_angle>-3.14159</min_angle>
+          <max_angle>3.14159</max_angle>
+        </horizontal>
+
+      </scan>
+
+      <range>
+        <min>0.12</min>
+        <max>12.0</max>
+        <resolution>0.01</resolution>
+      </range>
+
+      <noise>
+        <type>gaussian</type>
+        <mean>0.0</mean>
+        <stddev>0.01</stddev>
+      </noise>
+
+    </ray>
+
+    <plugin
+        name="gazebo_ros_laser"
+        filename="libgazebo_ros_ray_sensor.so">
+
+      <ros>
+        <remapping>~/out:=scan</remapping>
+      </ros>
+
+      <output_type>sensor_msgs/LaserScan</output_type>
+
+      <frame_name>lidar_link</frame_name>
+
+    </plugin>
+
+  </sensor>
+
+</gazebo>
+
+<!-- ================================ -->
+<!--  GAZEBO: 4WD SKID-STEER DRIVE    -->
+<!--  odom TF disabled (EKF handles)  -->
+<!-- ================================ -->
+<gazebo>
+  <plugin name="skid_steer_drive" filename="libgazebo_ros_diff_drive.so">
+    <ros>
+      <namespace>/</namespace>
+    </ros>
+
+    <num_wheel_pairs>2</num_wheel_pairs>
+
+    <left_joint>flw_joint</left_joint>
+    <right_joint>frw_joint</right_joint>
+
+    <left_joint>rlw_joint</left_joint>
+    <right_joint>rrw_joint</right_joint>
+
+    <wheel_separation>0.32</wheel_separation>
+    <wheel_separation>0.32</wheel_separation>
+
+    <wheel_diameter>0.10</wheel_diameter>
+    <wheel_diameter>0.10</wheel_diameter>
+
+    <max_wheel_torque>500</max_wheel_torque>
+    <max_wheel_acceleration>1.0</max_wheel_acceleration>
+
+    <command_topic>cmd_vel</command_topic>
+    <publish_odom>true</publish_odom>
+    <publish_odom_tf>false</publish_odom_tf>
+    <publish_wheel_tf>true</publish_wheel_tf>
+    <odometry_topic>odom</odometry_topic>
+    <odometry_frame>odom</odometry_frame>
+    <robot_base_frame>base_link</robot_base_frame>
+  </plugin>
+</gazebo>
+</robot>

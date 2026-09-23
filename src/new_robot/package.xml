@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="3">
+
+  <name>new_robot</name>
+  <version>0.0.0</version>
+  <description>ROS 2 autonomous mobile robot with 4WD skid-steer drive, LiDAR, IMU, EKF localization, SLAM, AMCL, and Nav2 navigation.</description>
+
+  <maintainer email="jaykumbharkar@gmail.com">Jay Kumbharkar</maintainer>
+
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- Runtime -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+
+  <exec_depend>xacro</exec_depend>
+
+  <exec_depend>rviz2</exec_depend>
+
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_ros2_control</exec_depend>
+
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>ros2_control</exec_depend>
+
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>velocity_controllers</exec_depend>
+
+  <exec_depend>tf2_ros</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

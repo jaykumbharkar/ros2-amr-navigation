@@ -1,0 +1,28 @@
+# ROS 2 generated files
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# ROS / development
+*.bag
+*.db3
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backups / archives
+src_backup_working/
+*.zip
+
+# Generated/export files
+export.log
