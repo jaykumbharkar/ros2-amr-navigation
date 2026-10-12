@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ========================================================= -->
+  <!--  Front camera: mount pose relative to base_link (edit to   -->
+  <!--  move the camera). The chassis nose slopes from z=0.126    -->
+  <!--  at x=0.21 to z=0.112 at the front edge (x=0.25).          -->
+  <!--  Keep the body below the LiDAR scan plane (z=0.171) so it  -->
+  <!--  does not block /scan.                                     -->
+  <!-- ========================================================= -->
+  <xacro:property name="cam_x"     value="0.23"/>
+  <xacro:property name="cam_y"     value="0.0"/>
+  <xacro:property name="cam_z"     value="0.128"/>  <!-- sits on the sloped nose -->
+  <xacro:property name="cam_pitch" value="0.0"/>    <!-- positive = tilt down -->
+
+  <!-- Camera body: X forward, Y left, Z up (REP-103) -->
+  <link name="camera_link">
+    <visual>
+      <geometry>
+        <box size="0.025 0.09 0.025"/>
+      </geometry>
+      <material name="camera_black">
+        <color rgba="0.1 0.1 0.1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.025 0.09 0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00004" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00004"/>
+    </inertial>
+  </link>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="${cam_x} ${cam_y} ${cam_z}" rpy="0 ${cam_pitch} 0"/>
+  </joint>
+
+  <!-- Optical frame: Z forward, X right, Y down (image convention).
+       Image and CameraInfo messages are stamped with this frame. -->
+  <link name="camera_optical_frame"/>
+
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_optical_frame"/>
+    <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+  </joint>
+
+</robot>

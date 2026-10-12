@@ -1,0 +1,27 @@
+"""EKF (robot_localization): fuses wheel odometry and IMU, publishes odom -> base_link."""
+import os
+
+from ament_index_python.packages import get_package_share_directory
+from launch import LaunchDescription
+from launch_ros.actions import Node
+
+
+def generate_launch_description():
+
+    ekf_config = os.path.join(
+        get_package_share_directory('skid_steer_amr'),
+        'config',
+        'ekf.yaml'
+    )
+
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[ekf_config]
+    )
+
+    return LaunchDescription([
+        ekf_node
+    ])

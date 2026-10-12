@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    Skid-steer drive for Gazebo Classic.
+    gazebo_ros_diff_drive with two wheel pairs drives all four wheels:
+    each left/right pair receives the same differential command.
+      subscribes: /cmd_vel (geometry_msgs/Twist)
+      publishes:  /odom    (nav_msgs/Odometry), wheel TFs
+    odom -> base_link TF is published by the EKF, not by this plugin.
+  -->
+  <gazebo>
+    <plugin name="skid_steer_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <namespace>/</namespace>
+      </ros>
+
+      <num_wheel_pairs>2</num_wheel_pairs>
+
+      <!-- front pair -->
+      <left_joint>flw_joint</left_joint>
+      <right_joint>frw_joint</right_joint>
+      <!-- rear pair -->
+      <left_joint>rlw_joint</left_joint>
+      <right_joint>rrw_joint</right_joint>
+
+      <!-- distance between left and right wheel centres (one value per pair) -->
+      <wheel_separation>${2 * (wheel_y + wheel_offset)}</wheel_separation>
+      <wheel_separation>${2 * (wheel_y + wheel_offset)}</wheel_separation>
+      <wheel_diameter>${2 * wheel_radius}</wheel_diameter>
+      <wheel_diameter>${2 * wheel_radius}</wheel_diameter>
+
+      <max_wheel_torque>500</max_wheel_torque>
+      <max_wheel_acceleration>1.0</max_wheel_acceleration>
+
+      <command_topic>cmd_vel</command_topic>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>false</publish_odom_tf>
+      <publish_wheel_tf>true</publish_wheel_tf>
+      <odometry_topic>odom</odometry_topic>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+    </plugin>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ======================================================= -->
+  <!--  Dimensions (metres). base_link sits at wheel-axle height -->
+  <!-- ======================================================= -->
+  <xacro:property name="wheel_radius" value="0.05"/>
+  <xacro:property name="wheel_width"  value="0.04"/>
+  <xacro:property name="wheel_x"      value="0.16"/>  <!-- axle position, front (+) / rear (-) -->
+  <xacro:property name="wheel_y"      value="0.16"/>  <!-- joint position, left (+) / right (-) -->
+  <xacro:property name="wheel_offset" value="0.02"/>  <!-- wheel centre sits this far outboard of its joint -->
+
+  <!-- ======================================================= -->
+  <!--  Chassis                                                 -->
+  <!-- ======================================================= -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.080606" rpy="0 0 0"/>
+      <mass value="20"/>
+      <inertia ixx="0.5403" ixy="0" ixz="0" iyy="1.158" iyz="0" izz="1.4784"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="package://skid_steer_amr/meshes/base_link.STL"/>
+      </geometry>
+      <material name="chassis_white">
+        <color rgba="1 1 1 0.35"/>
+      </material>
+    </visual>
+    <!-- NOTE: simplified box, smaller than the 0.50 x 0.40 m visual chassis.
+         See README "Known limitations". -->
+    <collision>
+      <origin xyz="0 0 0.08" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.20 0.28 0.08"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ======================================================= -->
+  <!--  Wheel macro                                             -->
+  <!--    name: flw / frw / rlw / rrw  (front/rear, left/right) -->
+  <!--    x:    +1 front, -1 rear                               -->
+  <!--    side: +1 left,  -1 right                              -->
+  <!-- ======================================================= -->
+  <xacro:macro name="wheel" params="name x side">
+    <link name="${name}_link">
+      <inertial>
+        <origin xyz="0 ${side * 0.019741} 0" rpy="0 0 0"/>
+        <mass value="0.37917"/>
+        <inertia ixx="0.00028454" ixy="0" ixz="0" iyy="0.00047097" iyz="0" izz="0.00028454"/>
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://skid_steer_amr/meshes/${name}_link.STL"/>
+        </geometry>
+        <material name="wheel_grey">
+          <color rgba="0.29804 0.29804 0.29804 1"/>
+        </material>
+      </visual>
+      <collision>
+        <!-- cylinder axis is Z by default; rotate it onto the axle (Y) -->
+        <origin xyz="0 ${side * wheel_offset} 0" rpy="${pi/2} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${name}_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}_link"/>
+      <origin xyz="${x * wheel_x} ${side * wheel_y} 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" velocity="20"/>
+    </joint>
+
+    <!-- Skid-steer friction. fdir1 is in the collision frame, whose Z is
+         the wheel axle, so mu1 acts sideways and mu2 along the rolling
+         direction. Low sideways friction lets the robot skid when turning. -->
+    <gazebo reference="${name}_link">
+      <mu1>0.3</mu1>
+      <mu2>1.0</mu2>
+      <fdir1>0 0 1</fdir1>
+      <kp>500000</kp>
+      <kd>50</kd>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:wheel name="flw" x="1"  side="1"/>
+  <xacro:wheel name="frw" x="1"  side="-1"/>
+  <xacro:wheel name="rlw" x="-1" side="1"/>
+  <xacro:wheel name="rrw" x="-1" side="-1"/>
+
+</robot>

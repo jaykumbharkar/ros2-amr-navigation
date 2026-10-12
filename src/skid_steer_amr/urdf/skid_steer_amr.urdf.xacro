@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+  Four-wheel skid-steer AMR with 2D LiDAR, IMU and front camera.
+  Each component lives in its own file; edit or swap them independently.
+-->
+<robot name="skid_steer_amr" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find skid_steer_amr)/urdf/robot_core.xacro"/>      <!-- chassis + 4 wheels -->
+  <xacro:include filename="$(find skid_steer_amr)/urdf/lidar.xacro"/>
+  <xacro:include filename="$(find skid_steer_amr)/urdf/imu.xacro"/>
+  <xacro:include filename="$(find skid_steer_amr)/urdf/camera.xacro"/>
+  <xacro:include filename="$(find skid_steer_amr)/urdf/gazebo_control.xacro"/>  <!-- skid-steer drive plugin -->
+
+</robot>
