@@ -79,6 +79,7 @@
          the wheel axle, so mu1 acts sideways and mu2 along the rolling
          direction. Low sideways friction lets the robot skid when turning. -->
     <gazebo reference="${name}_link">
+      <material>Gazebo/FlatBlack</material>   <!-- Gazebo ignores URDF colours -->
       <mu1>0.3</mu1>
       <mu2>1.0</mu2>
       <fdir1>0 0 1</fdir1>

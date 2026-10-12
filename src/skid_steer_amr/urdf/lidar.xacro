@@ -26,6 +26,7 @@
   </joint>
 
   <gazebo reference="lidar_link">
+    <material>Gazebo/DarkGrey</material>
     <sensor name="lidar" type="ray">
       <always_on>true</always_on>
       <visualize>true</visualize>
