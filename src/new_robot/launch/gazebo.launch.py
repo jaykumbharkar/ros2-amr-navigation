@@ -30,13 +30,21 @@ def generate_launch_description():
         'worlds',
         'hospital_simple.world'
     )
+    # Raises /clock from the default 10 Hz to 100 Hz
+    gazebo_params = os.path.join(
+        pkg_path,
+        'config',
+        'gazebo_params.yaml'
+    )
     gzserver = ExecuteProcess(
         cmd=[
             'gzserver',
             '--verbose',
             world,
             '-s', 'libgazebo_ros_init.so',
-            '-s', 'libgazebo_ros_factory.so'
+            '-s', 'libgazebo_ros_factory.so',
+            # ROS args must be wrapped in --ros-args ... -- for gzserver
+            '--ros-args', '--params-file', gazebo_params, '--'
         ],
         output='screen'
     )
