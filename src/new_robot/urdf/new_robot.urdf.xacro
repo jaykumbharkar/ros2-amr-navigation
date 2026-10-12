@@ -357,32 +357,36 @@
 </joint>
 <!-- ======================== -->
 <!--  GAZEBO: WHEEL FRICTION  -->
-<!--  Low mu2 for skid-steer  -->
+<!--  Low lateral mu1 for skid-steer -->
 <!-- ======================== -->
 <gazebo reference="frw_link">
-  <mu1>1.0</mu1>
-  <mu2>0.3</mu2>
+  <mu1>0.3</mu1>          <!-- along fdir1 = axle: low, so the wheel can skid sideways -->
+  <mu2>1.0</mu2>          <!-- rolling direction: high, for traction -->
+  <fdir1>0 0 1</fdir1>    <!-- collision frame Z = cylinder axis = wheel axle -->
   <kp>500000</kp>
   <kd>50</kd>
 </gazebo>
 
 <gazebo reference="flw_link">
-  <mu1>1.0</mu1>
-  <mu2>0.3</mu2>
+  <mu1>0.3</mu1>          <!-- along fdir1 = axle: low, so the wheel can skid sideways -->
+  <mu2>1.0</mu2>          <!-- rolling direction: high, for traction -->
+  <fdir1>0 0 1</fdir1>    <!-- collision frame Z = cylinder axis = wheel axle -->
   <kp>500000</kp>
   <kd>50</kd>
 </gazebo>
 
 <gazebo reference="rrw_link">
-  <mu1>1.0</mu1>
-  <mu2>0.3</mu2>
+  <mu1>0.3</mu1>          <!-- along fdir1 = axle: low, so the wheel can skid sideways -->
+  <mu2>1.0</mu2>          <!-- rolling direction: high, for traction -->
+  <fdir1>0 0 1</fdir1>    <!-- collision frame Z = cylinder axis = wheel axle -->
   <kp>500000</kp>
   <kd>50</kd>
 </gazebo>
 
 <gazebo reference="rlw_link">
-  <mu1>1.0</mu1>
-  <mu2>0.3</mu2>
+  <mu1>0.3</mu1>          <!-- along fdir1 = axle: low, so the wheel can skid sideways -->
+  <mu2>1.0</mu2>          <!-- rolling direction: high, for traction -->
+  <fdir1>0 0 1</fdir1>    <!-- collision frame Z = cylinder axis = wheel axle -->
   <kp>500000</kp>
   <kd>50</kd>
 </gazebo>
@@ -525,8 +529,8 @@
     <left_joint>rlw_joint</left_joint>
     <right_joint>rrw_joint</right_joint>
 
-    <wheel_separation>0.32</wheel_separation>
-    <wheel_separation>0.32</wheel_separation>
+    <wheel_separation>0.36</wheel_separation>
+    <wheel_separation>0.36</wheel_separation>
 
     <wheel_diameter>0.10</wheel_diameter>
     <wheel_diameter>0.10</wheel_diameter>
