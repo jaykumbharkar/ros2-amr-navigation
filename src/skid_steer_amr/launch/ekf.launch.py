@@ -1,4 +1,4 @@
-"""EKF (robot_localization): fuses wheel odometry and IMU, publishes odom -> base_link."""
+"""EKF (robot_localization): fuses wheel odometry and IMU, publishes odom -> base_footprint."""
 import os
 
 from ament_index_python.packages import get_package_share_directory

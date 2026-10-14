@@ -29,7 +29,7 @@
     <material>Gazebo/DarkGrey</material>
     <sensor name="lidar" type="ray">
       <always_on>true</always_on>
-      <visualize>true</visualize>
+      <visualize>false</visualize>  <!-- true draws the rays in Gazebo -->
       <update_rate>10</update_rate>
       <ray>
         <scan>

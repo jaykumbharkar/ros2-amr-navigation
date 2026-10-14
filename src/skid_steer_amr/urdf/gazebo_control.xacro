@@ -7,7 +7,7 @@
     each left/right pair receives the same differential command.
       subscribes: /cmd_vel (geometry_msgs/Twist)
       publishes:  /odom    (nav_msgs/Odometry), wheel TFs
-    odom -> base_link TF is published by the EKF, not by this plugin.
+    odom -> base_footprint TF is published by the EKF, not by this plugin.
   -->
   <gazebo>
     <plugin name="skid_steer_drive" filename="libgazebo_ros_diff_drive.so">
@@ -39,7 +39,7 @@
       <publish_wheel_tf>true</publish_wheel_tf>
       <odometry_topic>odom</odometry_topic>
       <odometry_frame>odom</odometry_frame>
-      <robot_base_frame>base_link</robot_base_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
     </plugin>
   </gazebo>
 

@@ -11,6 +11,19 @@
   <xacro:property name="wheel_offset" value="0.02"/>  <!-- wheel centre sits this far outboard of its joint -->
 
   <!-- ======================================================= -->
+  <!--  base_footprint: robot frame on the floor, directly below -->
+  <!--  the chassis (REP-105). EKF, AMCL, SLAM and Nav2 track    -->
+  <!--  this frame; base_link sits at wheel-axle height above it -->
+  <!-- ======================================================= -->
+  <link name="base_footprint"/>
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ======================================================= -->
   <!--  Chassis                                                 -->
   <!-- ======================================================= -->
   <link name="base_link">
