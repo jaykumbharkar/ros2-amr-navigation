@@ -2408,5 +2408,64 @@
       </link>
     </model>
 
+    <actor name="visitor_reception">
+      <skin><filename>stand.dae</filename></skin>
+      <animation name="anim"><filename>stand.dae</filename></animation>
+      <script><loop>true</loop><auto_start>true</auto_start>
+        <trajectory id="0" type="anim">
+          <waypoint><time>0.00</time><pose>-10 -4.3 0 0 0 1.5708</pose></waypoint>
+          <waypoint><time>100.00</time><pose>-10 -4.3 0 0 0 1.5708</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <actor name="visitor_ward_doors">
+      <skin><filename>talk_a.dae</filename></skin>
+      <animation name="anim"><filename>talk_a.dae</filename></animation>
+      <script><loop>true</loop><auto_start>true</auto_start>
+        <trajectory id="0" type="anim">
+          <waypoint><time>0.00</time><pose>-4.4 -0.4 0 0 0 3.1416</pose></waypoint>
+          <waypoint><time>100.00</time><pose>-4.4 -0.4 0 0 0 3.1416</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <actor name="nurse_at_station">
+      <skin><filename>talk_b.dae</filename></skin>
+      <animation name="anim"><filename>talk_b.dae</filename></animation>
+      <script><loop>true</loop><auto_start>true</auto_start>
+        <trajectory id="0" type="anim">
+          <waypoint><time>0.00</time><pose>3.5 3.5 0 0 0 -1.5708</pose></waypoint>
+          <waypoint><time>100.00</time><pose>3.5 3.5 0 0 0 -1.5708</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <actor name="nurse_walking">
+      <skin><filename>walk.dae</filename></skin>
+      <animation name="anim"><filename>walk.dae</filename><interpolate_x>true</interpolate_x></animation>
+      <script><loop>true</loop><auto_start>true</auto_start>
+        <trajectory id="0" type="anim">
+          <waypoint><time>0.00</time><pose>-4.5 4.4 0 0 0 0</pose></waypoint>
+          <waypoint><time>15.00</time><pose>7.5 4.4 0 0 0 0</pose></waypoint>
+          <waypoint><time>16.00</time><pose>7.5 4.4 0 0 0 3.1416</pose></waypoint>
+          <waypoint><time>31.00</time><pose>-4.5 4.4 0 0 0 3.1416</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
+    <actor name="porter_walking">
+      <skin><filename>walk.dae</filename></skin>
+      <animation name="anim"><filename>walk.dae</filename><interpolate_x>true</interpolate_x></animation>
+      <script><loop>true</loop><auto_start>true</auto_start>
+        <trajectory id="0" type="anim">
+          <waypoint><time>0.00</time><pose>14.5 -3.9 0 0 0 3.1416</pose></waypoint>
+          <waypoint><time>31.67</time><pose>-4.5 -3.9 0 0 0 3.1416</pose></waypoint>
+          <waypoint><time>32.67</time><pose>-4.5 -3.9 0 0 0 0</pose></waypoint>
+          <waypoint><time>64.33</time><pose>14.5 -3.9 0 0 0 0</pose></waypoint>
+        </trajectory>
+      </script>
+    </actor>
+
   </world>
 </sdf>
