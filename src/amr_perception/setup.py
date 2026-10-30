@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             'detector_node = amr_perception.detector_node:main',
             'object_localizer = amr_perception.object_localizer_node:main',
+            'people_cloud = amr_perception.people_cloud_node:main',
         ],
     },
 )
