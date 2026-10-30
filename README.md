@@ -8,8 +8,9 @@
 A four-wheel **skid-steer autonomous mobile robot (AMR)** that maps, localizes
 and navigates a realistic **32 × 20 m hospital floor** in simulation. It fuses
 wheel odometry and an IMU with an EKF, builds maps with SLAM Toolbox,
-localizes with AMCL and drives autonomously with Nav2. A front camera is being
-added for perception.
+localizes with AMCL and drives autonomously with Nav2. A front RGB-D camera
+feeds a YOLO person detector, and detected people appear as obstacles in the
+Nav2 costmaps (see [Perception pipeline](#perception-pipeline)).
 
 Everything is written to be read and reused: if you want to build a similar
 skid-steer robot in ROS 2, the robot description, launch files and
@@ -25,6 +26,7 @@ are documented below.
 - [System architecture](#system-architecture)
 - [The robot](#the-robot)
 - [The hospital world](#the-hospital-world)
+- [Perception pipeline](#perception-pipeline)
 - [Installation](#installation)
 - [Usage: step by step](#usage-step-by-step)
 - [Customising](#customising)
@@ -47,18 +49,23 @@ are documented below.
   AMCL localization → Nav2 path planning and control.
 - **Measured, not assumed:** turning rate, sensor rates, map accuracy against
   ground truth and localization error are all reported below.
+- **Camera perception:** an RGB-D camera, YOLO11n person detection on the GPU,
+  3D person positions from depth, and a people layer in the Nav2 costmaps.
 - **Headless mode** (`gui:=false`) for repeatable automated tests.
 
 | Area | Implementation | Status |
 |---|---|---|
 | Robot model | Modular URDF/xacro from CAD (STL meshes) | ✅ |
 | Drive | `gazebo_ros_diff_drive` with two wheel pairs (skid-steer) | ✅ |
-| Sensors | 360° 2D LiDAR (`/scan`), IMU (`/imu/data`) | ✅ |
+| Sensors | 360° 2D LiDAR (`/scan`), IMU (`/imu/data`), RGB-D camera | ✅ |
 | Odometry fusion | `robot_localization` EKF: wheel odometry + IMU yaw rate | ✅ |
 | Mapping | SLAM Toolbox (online async) | ✅ |
 | Localization | Nav2 map server + AMCL | ✅ |
 | Navigation | Nav2: NavFn planner, DWB controller, recovery behaviours | ✅ |
-| Camera | Mount and TF frames in place | 🚧 sensor plugin next |
+| Camera | RGB-D depth camera: RGB image, depth image, camera info, point cloud | ✅ |
+| Person detection | YOLO11n (`detector_node`), GPU inference | ✅ |
+| 3D localization | Detection + depth + TF to a position in the `map` frame | ✅ |
+| People in the costmap | Detected people mark Nav2 costmap cells; the depth camera clears them | ✅ |
 
 ## Gallery
 
@@ -109,8 +116,9 @@ The TF tree, and which node publishes each transform:
 ```mermaid
 flowchart TD
     map -- "AMCL or SLAM Toolbox" --> odom
-    odom -- "EKF" --> base_link
-    base_link -- "drive plugin" --> wheels["flw / frw / rlw / rrw_link"]
+    odom -- "EKF" --> base_footprint
+    base_footprint -- "robot_state_publisher" --> base_link
+    base_footprint -- "drive plugin" --> wheels["flw / frw / rlw / rrw_link"]
     base_link -- "robot_state_publisher" --> lidar_link
     base_link -- "robot_state_publisher" --> imu_link
     base_link -- "robot_state_publisher" --> camera_link
@@ -126,6 +134,12 @@ flowchart TD
 | `/imu/data` | `sensor_msgs/Imu` | Gazebo IMU | 100 Hz |
 | `/map` | `nav_msgs/OccupancyGrid` | map server or SLAM Toolbox | latched |
 | `/clock` | `rosgraph_msgs/Clock` | Gazebo | 100 Hz |
+| `/camera/image_raw` | `sensor_msgs/Image` (rgb8) | Gazebo camera | ~14 Hz |
+| `/camera/depth/image_raw` | `sensor_msgs/Image` (32FC1, metres) | Gazebo camera | ~14 Hz |
+| `/detections` | `vision_msgs/Detection2DArray` (pixels) | `detector_node` | ~13 Hz |
+| `/detections_3d` | `vision_msgs/Detection3DArray` (`map` frame) | `object_localizer` | ~13 Hz |
+| `/people_cloud` | `sensor_msgs/PointCloud2` (`map` frame) | `people_cloud` | ~13 Hz |
+| `/camera/scan` | `sensor_msgs/LaserScan` | `depthimage_to_laserscan` | ~14 Hz |
 
 ## The robot
 
@@ -137,7 +151,7 @@ flowchart TD
 | Mass | ≈ 21.6 kg |
 | LiDAR | 360°, 720 samples, 0.12–12 m, 10 Hz, scan plane 0.22 m above the floor |
 | IMU | 100 Hz |
-| Camera | Front, 0.23 m ahead of centre, below the LiDAR scan plane |
+| Camera | Front RGB-D, 0.23 m ahead of centre, below the LiDAR scan plane; 640 × 480 at 15 Hz, 1.2 rad horizontal field of view, depth 0.1–10 m |
 
 The description is split into one xacro file per component, so a sensor can
 be moved or swapped by editing a single file:
@@ -148,7 +162,7 @@ be moved or swapped by editing a single file:
 | [`robot_core.xacro`](src/skid_steer_amr/urdf/robot_core.xacro) | Chassis, wheel macro, wheel friction |
 | [`lidar.xacro`](src/skid_steer_amr/urdf/lidar.xacro) | LiDAR link and Gazebo ray sensor |
 | [`imu.xacro`](src/skid_steer_amr/urdf/imu.xacro) | IMU link and Gazebo IMU sensor |
-| [`camera.xacro`](src/skid_steer_amr/urdf/camera.xacro) | Camera link and optical frame |
+| [`camera.xacro`](src/skid_steer_amr/urdf/camera.xacro) | Camera link, optical frame and Gazebo depth camera sensor |
 | [`gazebo_control.xacro`](src/skid_steer_amr/urdf/gazebo_control.xacro) | Skid-steer drive plugin |
 
 ## The hospital world
@@ -181,12 +195,52 @@ corridors, 1.2 m room doors, ~4.4 × 4.8 m patient rooms, 2.8 m walls):
 - **Sensor-realistic:** the 2D LiDAR sees bed bases, cabinets and furniture
   legs; mattresses, table tops and handrails are above its scan plane, as
   with a real 2D LiDAR. That is exactly the gap a depth camera fills.
+- **People:** five animated actors (two visitors, two nurses, a porter), some
+  standing, some walking the corridors. Actors have **no collision**, so the
+  LiDAR cannot see them; only the camera can.
 - **Fast:** collision shapes exist only below 0.4 m (everything the robot can
   touch or the LiDAR can see), which keeps the simulation at real-time speed.
 
 The world file is generated by
 [`scripts/generate_hospital_world.py`](src/skid_steer_amr/scripts/generate_hospital_world.py)
 (see [Customising](#customising)).
+
+## Perception pipeline
+
+The LiDAR cannot see the animated people in the ward (they have no collision),
+but the camera can. Four small nodes turn camera images into obstacles that
+Nav2 plans around:
+
+```mermaid
+flowchart LR
+    CAM["RGB-D camera<br/>(Gazebo)"]
+    DET["detector_node<br/>YOLO11n, GPU"]
+    LOC["object_localizer<br/>pixel + depth to map position"]
+    PC["people_cloud<br/>disc of points per person"]
+    D2S["depthimage_to_laserscan"]
+    CM["Nav2 costmaps<br/>local + global"]
+
+    CAM -- "/camera/image_raw" --> DET
+    DET -- "/detections" --> LOC
+    CAM -- "/camera/depth/image_raw" --> LOC
+    CAM -- "/camera/depth/image_raw" --> D2S
+    LOC -- "/detections_3d" --> PC
+    PC -- "/people_cloud: marks cells" --> CM
+    D2S -- "/camera/scan: clears cells" --> CM
+```
+
+| Node (package `amr_perception`) | What it does |
+|---|---|
+| `detector_node` | Runs YOLO11n on each camera image and publishes 2D boxes (`Detection2DArray`) plus an annotated image. Parameters: `confidence`, `device` (`cpu` to force CPU), `model`. |
+| `object_localizer` | Pairs each detection with the depth image from the same moment, takes the median depth of the middle of the box, turns pixel + depth into a 3D point with the pinhole camera model, and transforms it into the `map` frame with TF. Also publishes RViz markers on `/detections_3d/markers`. |
+| `people_cloud` | Turns each 3D person into a disc of points (0.35 m radius) for the costmap. Publishes an empty cloud when nobody is visible. |
+| `depthimage_to_laserscan` (started by `navigation.launch.py`) | Converts the depth image into a laser scan. Nav2 uses it only to **clear** cells the camera can see through. |
+
+**Why a clearing source is needed.** Nav2 only erases obstacle cells with
+sensor rays. In an isolated test, a fake person that walked across the
+costmap and disappeared left about 1200 marked cells behind for good, even
+with `clearing: True` on the person source. With the camera scan added, the
+trail was gone within 2 seconds.
 
 ## Installation
 
@@ -211,6 +265,18 @@ sudo rosdep init   # first time only
 rosdep update
 rosdep install --from-paths src --ignore-src -y
 ```
+
+**Perception dependencies** (only needed for the camera pipeline):
+
+```bash
+sudo apt install ros-humble-vision-msgs ros-humble-depthimage-to-laserscan
+pip3 install --no-cache-dir "numpy<2" ultralytics
+```
+
+`numpy<2` matters: NumPy 2 breaks `cv_bridge` on Humble. For GPU inference
+install a CUDA build of PyTorch (tested with `torch 2.14.1+cu126`); the
+detector falls back to the CPU if no GPU is available. The YOLO11n weights
+(`yolo11n.pt`, not stored in this repository) are downloaded on first run.
 
 **2. Clone and build:**
 
@@ -309,6 +375,23 @@ windows. This uses far less CPU and is meant for automated tests:
 ros2 launch skid_steer_amr bringup_navigation.launch.py gui:=false
 ```
 
+### 5. Run the perception pipeline
+
+With the navigation launch running (headless is fine), start the nodes, each
+in its own terminal:
+
+```bash
+ros2 run amr_perception detector_node       # YOLO; add -p device:=cpu to force CPU
+ros2 run amr_perception object_localizer    # 3D positions of detected people
+ros2 run amr_perception people_cloud        # people as costmap obstacles
+```
+
+The robot spawns facing a visitor standing just inside the ward doors. The
+localizer should print a line like
+`person: 3.40 m ahead, +0.01 m left -> map (-4.60, 0.01)` about once a second.
+In RViz, add a **MarkerArray** display on `/detections_3d/markers` to see the
+person, and a **PointCloud2** display on `/people_cloud` to see what Nav2 gets.
+
 ## Customising
 
 **Move or tilt the camera:** edit the four properties at the top of
@@ -369,6 +452,8 @@ ros2 topic echo /imu/data --field angular_velocity.z
 | Robot meshes missing in Gazebo | `GAZEBO_MODEL_PATH` not set | Launch through `gazebo.launch.py`, which sets it |
 | Simulation slow (real-time factor well below 1) | Not enough CPU, e.g. two simulations running | Close other simulations; use `gui:=false` |
 | Robot drives straight but hardly turns | Wheel friction direction missing (only if you edit the wheels) | Keep `<fdir1>0 0 1</fdir1>` in the wheel macro; see [Engineering notes](#engineering-notes) |
+| `colcon build` fails with `canonicalize_version() ... strip_trailing_zero` | `pip install` of PyTorch put a newer `setuptools` in `~/.local` | `pip3 uninstall -y setuptools` (the system one is used again) |
+| Detector or localizer silent, no `person:` lines | Nodes started before the simulation was ready, or nobody in the camera view | Wait for `Managed nodes are active`, check `/camera/image_raw` is publishing |
 | Goal far away fails during mapping | Goal is outside the map built so far | Explore towards it in steps |
 
 ## Measured performance
@@ -384,6 +469,12 @@ Measured in this simulation (laptop: AMD Ryzen 5 4600HS, GTX 1650 Ti, 8 GB RAM).
 | SLAM map accuracy vs. true geometry | 95 % of mapped obstacles within 0.15 m |
 | Autonomous exploration tour (49 goals, every room) | 46 / 49 goals reached |
 | AMCL localization error vs. ground truth | ward: mean 0.10 m · lobby: mean 0.17 m, max 0.50 m |
+| YOLO11n inference (GTX 1650 Ti) | 8.6 ms on GPU vs. 41 ms on CPU per image |
+| Detector node, GPU, simulation running | 13.2 FPS (limited by the ~14 Hz camera), ~14 ms per image |
+| Detector node, CPU, simulation running | 6–9 FPS |
+| 3D position of a person at 3.4 m | sideways error ~0.02 m; range ~0.20 m short (the camera sees the front surface, not the body centre) |
+| Person marked in the global costmap | 294 of 320 cells around the person are lethal |
+| Ghost clearing (isolated test, person inside camera view) | marked cells back to baseline within 2 s of the person leaving |
 
 ## Engineering notes
 
@@ -407,6 +498,18 @@ you build a similar one.
 - **Real-time world:** giving collision shapes only to objects below 0.4 m
   cut collision shapes from 658 to 397 without changing what the robot or
   LiDAR experience.
+- **Lost depth images:** a 1.2 MB depth image is sent in many network
+  fragments. A `BEST_EFFORT` subscriber lost 20 % of them under load; a
+  `RELIABLE` one received 100 %. The localizer uses `RELIABLE` for depth.
+- **TF lookups that froze the node:** calling `lookup_transform(..., timeout=...)`
+  inside a subscriber callback made the node's own TF buffer fall seconds
+  behind (0.01 s growing to 4–10 s), so every detection was rejected. A plain
+  listener on the same data stayed at 0.02 s. Removing the timeout and simply
+  skipping a frame when the transform is a few milliseconds too new fixed it.
+- **Ghost obstacles:** see [Perception pipeline](#perception-pipeline). Marking
+  cells is not enough; something with a view of the area has to clear them.
+- **`gui:=false` also skips RViz.** To watch a headless run, start RViz
+  yourself: `ros2 run rviz2 rviz2 -d src/skid_steer_amr/rviz/hospital_nav.rviz`.
 
 ## Package layout
 
@@ -419,7 +522,7 @@ src/skid_steer_amr/
 │   ├── gazebo.launch.py              # world + robot spawn (args: world, x, y, yaw, gui)
 │   ├── ekf.launch.py                 # robot_localization EKF
 │   ├── localization.launch.py        # map server + AMCL
-│   ├── navigation.launch.py          # Nav2 servers
+│   ├── navigation.launch.py          # Nav2 servers + camera depth-to-scan
 │   └── display.launch.py             # model only, in RViz
 ├── config/      # ekf.yaml, nav2_params.yaml, mapper_params_online_async.yaml, gazebo_params.yaml
 ├── maps/        # hospital_map.yaml / .pgm
@@ -427,6 +530,11 @@ src/skid_steer_amr/
 ├── scripts/     # generate_hospital_world.py
 ├── meshes/      # STL files exported from CAD
 └── rviz/        # hospital_nav.rviz
+
+src/amr_perception/amr_perception/
+├── detector_node.py          # YOLO11n: /camera/image_raw -> /detections
+├── object_localizer_node.py  # detections + depth + TF -> /detections_3d (map frame)
+└── people_cloud_node.py      # /detections_3d -> /people_cloud for the Nav2 costmaps
 ```
 
 ## Known limitations
@@ -445,6 +553,15 @@ Documented deliberately; most are next on the roadmap.
   The 1.1 m door between the nurse station and the staff lounge is too tight
   for the current inflation settings (the lounge is reachable through its
   1.2 m corridor door).
+- **YOLO does not recognise the furniture.** The model is trained on real
+  photos (COCO); the box-shaped beds and cabinets are not detected. It finds
+  the animated people reliably (confidence 0.87–0.95).
+- **People are a fixed 0.35 m disc.** Only the centre of a person is known
+  from one box; there is no tracking, no velocity and no body shape.
+- **Ghosts outside the camera's view.** A person who was seen and then left
+  the camera's field of view stays marked until the camera looks at that spot
+  again. Avoidance of people by the planner has been checked in the costmap
+  but not yet measured over many runs.
 - **AMCL uses default tuning.** With unmapped obstacles blocking a corridor
   (repeated spin and back-up recoveries), AMCL has been seen to lose the
   robot by ~2.8 m; re-localize with **2D Pose Estimate**.
@@ -452,11 +569,12 @@ Documented deliberately; most are next on the roadmap.
 ## Roadmap
 
 1. AMCL tuning, tested against obstacles that are not on the map
-2. Camera sensor (RGB-D) with image, camera info and point-cloud topics
-3. Object and person detection (YOLO) with distance from depth
-4. Realistic wheel odometry, EKF retuning, matched footprint and collision model
-5. Depth point cloud in the Nav2 local costmap; people-aware navigation
-6. Waypoint missions, docking, performance evaluation
+2. Realistic wheel odometry, EKF retuning, matched footprint and collision model
+3. People-aware navigation: slow down near people, measure avoidance over many runs
+4. Waypoint missions, docking, performance evaluation
+
+Done so far: RGB-D camera, YOLO person detection (GPU), 3D localization of
+people, people in the Nav2 costmaps.
 
 ## Author
 
