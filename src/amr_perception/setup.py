@@ -24,7 +24,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'detector_node = amr_perception.detector_node:main'
+            'detector_node = amr_perception.detector_node:main',
+            'object_localizer = amr_perception.object_localizer_node:main',
         ],
     },
 )
