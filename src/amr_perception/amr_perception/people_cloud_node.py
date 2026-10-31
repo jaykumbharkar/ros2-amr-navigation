@@ -22,6 +22,10 @@ class PeopleCloud(Node):
         self.declare_parameter('radius', 0.35)     # metres: size of the disc around a person
         self.declare_parameter('spacing', 0.05)    # metres between points (= costmap resolution)
         self.declare_parameter('height', 0.5)      # metres above ground
+        # YOLO labels to treat as people. A person seen from very close is
+        # sometimes labelled "tie" or "umbrella"; those are ignored.
+        self.declare_parameter('classes', ['person'])
+        self.classes = set(self.get_parameter('classes').value)
         self.radius = self.get_parameter('radius').value
         self.spacing = self.get_parameter('spacing').value
         self.height = self.get_parameter('height').value
@@ -34,6 +38,9 @@ class PeopleCloud(Node):
         points = []
         n = int(self.radius / self.spacing)
         for det in msg.detections:
+            label = det.results[0].hypothesis.class_id if det.results else ''
+            if label not in self.classes:
+                continue
             cx = det.bbox.center.position.x
             cy = det.bbox.center.position.y
             # fill a disc: every grid point within `radius` of the person

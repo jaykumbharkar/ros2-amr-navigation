@@ -233,7 +233,7 @@ flowchart LR
 |---|---|
 | `detector_node` | Runs YOLO11n on each camera image and publishes 2D boxes (`Detection2DArray`) plus an annotated image. Parameters: `confidence`, `device` (`cpu` to force CPU), `model`. |
 | `object_localizer` | Pairs each detection with the depth image from the same moment, takes the median depth of the middle of the box, turns pixel + depth into a 3D point with the pinhole camera model, and transforms it into the `map` frame with TF. Also publishes RViz markers on `/detections_3d/markers`. |
-| `people_cloud` | Turns each 3D person into a disc of points (0.35 m radius) for the costmap. Publishes an empty cloud when nobody is visible. |
+| `people_cloud` | Turns each 3D person into a disc of points (0.35 m radius) for the costmap. Only detections labelled `person` count (parameter `classes`). Publishes an empty cloud when nobody is visible. |
 | `depthimage_to_laserscan` (started by `navigation.launch.py`) | Converts the depth image into a laser scan. Nav2 uses it only to **clear** cells the camera can see through. |
 
 **Why a clearing source is needed.** Nav2 only erases obstacle cells with
@@ -555,7 +555,10 @@ Documented deliberately; most are next on the roadmap.
   1.2 m corridor door).
 - **YOLO does not recognise the furniture.** The model is trained on real
   photos (COCO); the box-shaped beds and cabinets are not detected. It finds
-  the animated people reliably (confidence 0.87–0.95).
+  the animated people reliably (confidence 0.87–0.95). From very close
+  (under about 1.5 m) it sometimes mislabels a person as "tie", "umbrella" or
+  "airplane", because only part of the body is in view; `people_cloud`
+  ignores every label except `person`.
 - **People are a fixed 0.35 m disc.** Only the centre of a person is known
   from one box; there is no tracking, no velocity and no body shape.
 - **Ghosts outside the camera's view.** A person who was seen and then left
